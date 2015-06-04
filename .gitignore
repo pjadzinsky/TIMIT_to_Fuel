@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+.DS_Store
+*.pk
+*.hdf5
+*.pkl
+/timit/
