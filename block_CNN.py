@@ -21,8 +21,8 @@ num_filters = 4
 initial_weight_std = .01
 epochs = 5
 
-x = T.tensor4('mfcc')
-y = T.lmatrix('phoneme_target')
+x = T.tensor4('features')
+y = T.lmatrix('targets')
 
 # Convolutional Layers
 conv_layers = [
@@ -91,10 +91,13 @@ from fuel.datasets import H5PYDataset
 from fuel.streams import DataStream
 from fuel.schemes import SequentialScheme
 from fuel.transformers import Flatten
+from fuel import config
+from os import path
 
 rng = np.random.RandomState(1)
 
-timit_train = H5PYDataset('timit/mfcc_16ms/timit.hdf5', which_set='train')
+timit_file = path.join(config.data_path, 'timit/timit.hdf5')
+timit_train = H5PYDataset(timit_file, which_set='train')
 training_stream = DataStream.default_stream(
     timit_train,
     iteration_scheme=SequentialScheme(timit_train.num_examples, batch_size=batch_size))
@@ -102,7 +105,7 @@ training_stream = DataStream.default_stream(
 algorithm = GradientDescent(cost=cost, params=cg.parameters,
         step_rule=Scale(learning_rate=0.1))
 
-timit_test = H5PYDataset('timit/mfcc_16ms/timit.hdf5', 'test')
+timit_test = H5PYDataset(timit_file, which_set='test')
 validation_stream = DataStream.default_stream(
     timit_test,
     iteration_scheme=SequentialScheme(

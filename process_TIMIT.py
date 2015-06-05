@@ -455,23 +455,6 @@ def phoneme_length(path, length_list):
                     tokens = line.split()
                     length_list.append(int(tokens[1])-int(tokens[0]))
 
-
-
-def test():
-    '''
-    load the dataset and print a few tests
-    '''
-    test_set = H5PYDataset(
-            'timit.hdf5', which_set='test', sources=('mfcc',))
-    print(test_set.axis_labels['mfcc'])
-
-    handle = test_set.open()
-    mfcc, = test_set.get_data(handle, slice(0,10))
-    test_set.close(handle)
-    print(type(mfcc), mfcc.dtype, mfcc.shape)
-
-    print(mfcc[0].shape, mfcc[1].shape)
-
 if __name__ == '__main__':
     # Implement input parser
     path_out = os.path.join(config.data_path, 'timit')

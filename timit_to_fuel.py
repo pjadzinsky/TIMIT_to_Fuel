@@ -26,9 +26,9 @@ import numpy
 import pickle
 import argparse
 from fuel import config
-import pdb
-
+from fuel.datasets.hdf5 import H5PYDataset
 from fuel.converters.base import fill_hdf5_file, check_exists
+import pdb
 
 # this will probably change
 TRAIN_IMAGES = 'train_mfcc.pkl'
@@ -101,6 +101,23 @@ def convert_timit(directory, output_file):
     h5file.flush()
     h5file.close()
 
+
+def test_read(file_out):
+    '''
+    load the dataset and print a few tests
+    '''
+    test_set = H5PYDataset(
+            file_out, which_set='test')
+    print(test_set.sources)
+    print(test_set.axis_labels['features'])
+
+    handle = test_set.open()
+    features, targets = test_set.get_data(handle, slice(0,10))
+    test_set.close(handle)
+    print(type(features), features.dtype, features.shape)
+
+    print(features[0].shape, features[1].shape)
+
 if __name__=='__main__':
     #pdb.set_trace()
     default_path = os.path.join(config.data_path, 'timit')
@@ -121,3 +138,5 @@ if __name__=='__main__':
         pkl_files = [f for f in os.listdir(args.input_path) if f.endswith('pkl')]
         for f in pkl_files:
             os.remove(os.path.join(args.input_path, f))
+
+    test_read(args.output_file)
