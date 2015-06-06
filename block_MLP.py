@@ -16,41 +16,24 @@ from blocks.initialization import IsotropicGaussian, Constant, Uniform
 from blocks.roles import WEIGHT, FILTER, INPUT
 from blocks.graph import ComputationGraph, apply_dropout
 
-batch_size = 256
+batch_size = 128
 epochs = 5
-reg_strength = 0.0
-learning_rate = 0.001
+reg_strength = 0.00
 
 x = T.tensor4('features')
 y = T.lmatrix('targets')
 
-# Convolutional Layers
-conv_layers = [
-        ConvolutionalLayer(Rectifier().apply, (1,3), 16, (1,1), name='l1')]
-
-convnet = ConvolutionalSequence(
-        conv_layers, num_channels=1, image_size=(1,14),
-        weights_init=IsotropicGaussian(0.01),
-        biases_init=Constant(0)
-        )
-
-convnet.initialize()
-
-output_dim = np.prod(convnet.get_dim('output'))
-print(output_dim)
-
-# Fully connected layers
-features = Flattener().apply(convnet.apply(x))
+x_flat = Flattener().apply(x)
 
 mlp = MLP(
         activations=[Rectifier(), None],
-        dims=[output_dim, 61, 61],
+        dims=[14, 100, 61],
         weights_init=IsotropicGaussian(0.01),
         biases_init=Constant(0)
         )
 mlp.initialize()
 
-y_hat = mlp.apply(features)
+y_hat = mlp.apply(x_flat)
 
 
 # numerically stable softmax
@@ -68,11 +51,6 @@ l2_regularization = reg_strength * sum((W**2).sum() for W in weights)
 
 cost_l2 = cost + l2_regularization
 cost.name = 'cost_with_regularization'
-
-# Print sizes to check
-print("Representation sizes:")
-for layer in convnet.layers:
-    print(layer.get_dim('input_'))
 
 ##################################################################
 # Training
@@ -103,7 +81,7 @@ training_stream = DataStream.default_stream(
     iteration_scheme=SequentialScheme(timit_train.num_examples, batch_size=batch_size))
 
 algorithm = GradientDescent(cost=cost, params=cg.parameters,
-        step_rule=Scale(learning_rate=learning_rate))
+        step_rule=Scale(learning_rate=0.3))
 
 timit_test = H5PYDataset(timit_file, which_set='test')
 validation_stream = DataStream.default_stream(
@@ -117,7 +95,7 @@ algorithm = GradientDescent(
         cost=cost_l2,
         params=model.parameters,
         step_rule=Momentum(
-            learning_rate=learning_rate,
+            learning_rate=1e-2,
             momentum=0.9)
         )
 
